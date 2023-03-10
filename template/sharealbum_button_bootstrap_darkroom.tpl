@@ -30,10 +30,13 @@
 	        	alert('{$T_SHAREALBUM_LINK_COPIED_FAILURE}');
 	    	});
 	    </script>
+		{if ($SHAREALBUM_HAS_MULTIPLE_LINKS == 0)}
 		<a class="dropdown-item" href="{$SHAREALBUM_LINK_RENEW}" onclick="return(confirm('{$T_SHAREALBUM_RENEW_WARNING}'));">{$T_SHAREALBUM_RENEW}</a>
+		{/if}
 		<a class="dropdown-item" href="{$SHAREALBUM_LINK_CANCEL}" onclick="return(confirm('{$T_SHAREALBUM_CANCEL_WARNING}'));">{$T_SHAREALBUM_CANCEL}</a>
+		<a class="dropdown-item" href="{$SHAREALBUM_LINK_CREATE}" onclick="return(confirm('{$T_SHAREALBUM_SHARE_AGAIN_WARNING}'));">{$T_SHAREALBUM_SHARE}</a>
 	{else}
-		<a href="{$SHAREALBUM_LINK_CREATE}" rel="nofollow">{$T_SHAREALBUM_SHARE}</a>
+		<a class="dropdown-item" href="{$SHAREALBUM_LINK_CREATE}">{$T_SHAREALBUM_SHARE}</a>
 	{/if}
 	</div>
 {/strip}

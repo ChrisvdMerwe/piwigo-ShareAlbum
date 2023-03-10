@@ -13,6 +13,11 @@ Administrative functions :
 * Optionally hide menus on shared albums (user name not shown, no albums navigation but current album)
 
 # Versions history
+* Version 13.2.1
+  * Allow multiple shares of an album
+  * Redirect to album only if username starts with "share_", else redirect to root
+  * Added separate User column to Share Album page
+  * On cancelling share, only delete linked user if in the sharealbum or sharealbum_powerusers group.  Else user will be kept.
 * Version 13.2
   * Additional corrections for PHP 8.0
 * Version 13.1

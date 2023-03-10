@@ -45,14 +45,14 @@ if (isset($_POST['create']) && isset ($_POST['new_share_cat']) && ($_POST['new_s
 }
 
 // Actions on existing shares
-if (isset($_POST['p_sharedalbums_action']) && isset($_POST['sa_cat']) && !empty($_POST['sa_cat'])) {
+if (isset($_POST['p_sharedalbums_action']) && isset($_POST['sa_shareid']) && !empty($_POST['sa_shareid'])) {
 	if ($_POST['p_sharedalbums_action'] == "renew") {
-	    foreach($_POST['sa_cat'] as $p_cat) {
-	       sharealbum_renew_share($p_cat);
+	    foreach($_POST['sa_shareid'] as $p_shareid) {
+	       sharealbum_renew_sharebyid($p_shareid);
 	    }
 	} elseif ($_POST['p_sharedalbums_action'] == "cancel") {
-	    foreach($_POST['sa_cat'] as $p_cat) {
-	        sharealbum_cancel_share($p_cat);
+	    foreach($_POST['sa_shareid'] as $p_shareid) {
+	        sharealbum_cancel_sharebyid($p_shareid);
 	    }
 	}		
 }
@@ -68,8 +68,7 @@ $private_albums_query = "
 			FROM ".CATEGORIES_TABLE." c
 			LEFT JOIN ".SHAREALBUM_TABLE." s
 			ON c.id = s.cat
-			WHERE s.cat IS NULL
-			AND c.status = 'private'
+			WHERE c.status = 'private'
 		)
 	AND c.id = ic.category_id
 	GROUP BY ic.category_id";
@@ -78,10 +77,7 @@ if ($conf['sharealbum']['option_recursive_shares']) {
     $private_albums_query = "
         SELECT c.*
         FROM  ".CATEGORIES_TABLE." c 
-        LEFT JOIN ".SHAREALBUM_TABLE." s 
-        ON c.id = s.cat
-        WHERE s.cat IS NULL 
-        AND c.status = 'private'
+        WHERE c.status = 'private'
         ORDER BY global_rank
         ";
 }

@@ -20,8 +20,11 @@
 		{'This album is shared via a public link'|translate}<br>
 		<input class="sharealbum_input_url" id="sharealbum_code" selected="yes" type="text" size="{$SHAREALBUM_CODE|count_characters:true+10}" value="{$SHAREALBUM_CODE}"/><br>
 	    <button class="sharealbum_button" data-clipboard-text="{$SHAREALBUM_CODE}">{$T_SHAREALBUM_COPY_TO_CLIPBOARD}</button><br>
+		{if ($SHAREALBUM_HAS_MULTIPLE_LINKS == 0)}
 		<a href="{$SHAREALBUM_LINK_RENEW}" onclick="return(confirm('{$T_SHAREALBUM_RENEW_WARNING}'));">{$T_SHAREALBUM_RENEW}</a><br>
+		{/if}
 		<a href="{$SHAREALBUM_LINK_CANCEL}" onclick="return(confirm('{$T_SHAREALBUM_CANCEL_WARNING}'));">{$T_SHAREALBUM_CANCEL}</a><br>
+		<a href="{$SHAREALBUM_LINK_CREATE}" onclick="return(confirm('{$T_SHAREALBUM_SHARE_AGAIN_WARNING}'));">{$T_SHAREALBUM_SHARE}</a><br>
 	{else}
 		<a href="{$SHAREALBUM_LINK_CREATE}">{$T_SHAREALBUM_SHARE}</a>
 	{/if}

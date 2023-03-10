@@ -95,6 +95,7 @@ jQuery(".showInfo").tipTip({
 	<th class="">{'Shared link'|@translate}</th>
 	<th class="">{'Visits'|@translate}</th>
 	<th class="dtc_date">{'Last visit'|@translate}</th>
+	<th class="">{'User'|@translate}</th>
 	<th class="">{'Shared by'|@translate}</th>
 	<th></th>
 </tr>
@@ -103,7 +104,7 @@ jQuery(".showInfo").tipTip({
 {foreach from=$shared_albums item=shared_album}
 {strip}
 <tr>
-	<td><input type="checkbox" name="sa_cat[]" value="{$shared_album.category}" {if isset($smarty.post.sa_cat)}{foreach from=$smarty.post.sa_cat item=cat}{if $cat==$shared_album.category}checked="checked"{/if}{/foreach}{/if}></td>
+	<td><input type="checkbox" name="sa_shareid[]" value="{$shared_album.id}" {if isset($smarty.post.sa_shareid)}{foreach from=$smarty.post.sa_shareid item=id}{if $id==$shared_album.id}checked="checked"{/if}{/foreach}{/if}></td>
 	<td>{$shared_album.creation_date}</td>
 	<td><i class="fa fa-user showInfo" title="{'User'|@translate}: {$shared_album.user}"></i>&nbsp; <a href="{$shared_root_path}/index.php?/category/{$shared_album.category}" target="_new" title="{$shared_album.album}">{$shared_album.album_short}</a></td>
 	<td><button type="image" class="sharealbum_button fa fa-copy showInfo" title="{'Copy to clipboard'|@translate}" data-clipboard-text="{$shared_album.code}"></button>{if isset($smarty.post.show_link) && $smarty.post.show_link=="yes"}&nbsp;{$shared_album.code}{/if}</td>
@@ -111,6 +112,7 @@ jQuery(".showInfo").tipTip({
 
 	<td align="center"><a href="{$shared_album_logs}{$shared_album.category}">{$shared_album.visits}</a></td>
 	<td align="center">{$shared_album.last_visit}</td>
+	<td>{$shared_album.user}</td>
 	<td>{$shared_album.shared_by}</td>
 	<td>	
 		{if $log_category == $shared_album.category}&nbsp;{'Activity logs shown below'|@translate}{/if}

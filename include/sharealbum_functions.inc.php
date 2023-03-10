@@ -64,7 +64,7 @@ function sharealbum_register_user($username,$password_length) {
  * @param int $cat
  * @return Ambigous <NULL, unknown>
  */
-function sharealbum_get_share_code($cat)
+function sharealbum_get_share_codebycat($cat)
 {
 	$code = NULL;
 	// Check if category is already shared using ShareAlbum plugin
@@ -73,6 +73,31 @@ function sharealbum_get_share_code($cat)
 				FROM `".SHAREALBUM_TABLE."`
 				WHERE
 					`cat` = ".$cat
+	);
+	if (pwg_db_num_rows($result))
+	{
+		// Existing code found for this album
+		$row = pwg_db_fetch_assoc($result);
+		$code = $row['code'];
+	}
+	return $code;
+}
+
+/**
+ * Get the share code for a specified share id
+ * Returns the share id or null if not found
+ * @param int $cat
+ * @return Ambigous <NULL, unknown>
+ */
+function sharealbum_get_share_codebyid($shareid)
+{
+	$code = NULL;
+	// Check if category is already shared using ShareAlbum plugin
+	$result = pwg_query("
+				SELECT `id`,`code`
+				FROM `".SHAREALBUM_TABLE."`
+				WHERE
+					`id` = ".$shareid
 	);
 	if (pwg_db_num_rows($result))
 	{
@@ -147,53 +172,124 @@ function sharealbum_get_shareable_url($code) {
  * Remove a share on an album
  * @cat_id id of the album on which a share is applied
  */
-function sharealbum_cancel_share($cat_id) {
+function sharealbum_cancel_sharebycat($cat_id) {
 	// List declared shares on this category (should be only one)
 	$res = pwg_query("
-		SELECT `id`,`user_id`
-		FROM `".SHAREALBUM_TABLE."`
+		SELECT s.id, s.user_id, s.cat, IFNULL(g.id, 0) as group_id
+		FROM ".SHAREALBUM_TABLE." s
+		JOIN ".USERS_TABLE." u
+		ON u.id = s.user_id
+		LEFT OUTER JOIN ".USER_GROUP_TABLE." ug
+		ON ug.user_id = u.id
+		LEFT OUTER JOIN ".GROUPS_TABLE." g
+		ON g.id = ug.group_id
+		AND (g.name = 'sharealbum_powerusers' OR g.name = 'sharealbum')
 		WHERE `cat`=".$cat_id
 	);
 	while ($row = pwg_db_fetch_assoc($res)) {
-		// Remove user permission on category
-		pwg_query("
-			DELETE FROM `".USER_ACCESS_TABLE."`
-			WHERE `user_id`=".$row['user_id']." 
-			AND `cat_id`=".$cat_id."
-			LIMIT 1"
-		);
-		// Remove user infos from user_infos tables
-		pwg_query("
-			DELETE FROM `".USER_INFOS_TABLE."`
-			WHERE `user_id`=".$row['user_id']."
-			LIMIT 1"
-		);
-		// Remove group membership
-		pwg_query("
-			DELETE FROM `".USER_GROUP_TABLE."`
-			WHERE `user_id`=".$row['user_id']."
-			LIMIT 1"
-		);
-		// Delete user
-		pwg_query("
-			DELETE FROM `".USERS_TABLE."`
-			WHERE `id`=".$row['user_id']."
-			LIMIT 1"
-		);
+		// Only remove user if not unlinked from sharealbum groups
+		if ($row['group_id'] > 0) {
+			// Remove user permission on category
+			pwg_query("
+				DELETE FROM `".USER_ACCESS_TABLE."`
+				WHERE `user_id`=".$row['user_id']
+			);
+			// Remove user infos from user_infos tables
+			pwg_query("
+				DELETE FROM `".USER_INFOS_TABLE."`
+				WHERE `user_id`=".$row['user_id']."
+				LIMIT 1"
+			);
+			// Remove group membership
+			pwg_query("
+				DELETE FROM `".USER_GROUP_TABLE."`
+				WHERE `user_id`=".$row['user_id']
+			);
+			// Delete user
+			pwg_query("
+				DELETE FROM `".USERS_TABLE."`
+				WHERE `id`=".$row['user_id']."
+				LIMIT 1"
+			);
 		
-		// Delete any user existing user session for this specific share
-		delete_user_sessions($row['user_id']);
+			// Delete any user existing user session for this specific share
+			delete_user_sessions($row['user_id']);
+		}
+
+		// Remove any existing log from sharealbum_log table
+		// Would have been better to delete it for the user only, but there is no user field
+		pwg_query("
+			DELETE FROM `".SHAREALBUM_TABLE_LOG."`
+			WHERE `cat_id`=".$cat_id
+		);
 	};
 	// Remove code from sharealbum table
 	pwg_query("
 		DELETE FROM `".SHAREALBUM_TABLE."`
-		WHERE `cat`=".$cat_id."
-		LIMIT 1"
+		WHERE `cat`=".$cat_id
 	);
-	// Remove any existing log from sharealbum_log table
+}
+
+/**
+ * Remove a share on an album
+ * @share_id id of the album on which a share is applied
+ */
+function sharealbum_cancel_sharebyid($share_id) {
+	// List declared shares on this category (should be only one)
+	$res = pwg_query("
+		SELECT s.id, s.user_id, s.cat, IFNULL(g.id, 0) as group_id
+		FROM ".SHAREALBUM_TABLE." s
+		JOIN ".USERS_TABLE." u
+		ON u.id = s.user_id
+		LEFT OUTER JOIN ".USER_GROUP_TABLE." ug
+		ON ug.user_id = u.id
+		LEFT OUTER JOIN ".GROUPS_TABLE." g
+		ON g.id = ug.group_id
+		AND (g.name = 'sharealbum_powerusers' OR g.name = 'sharealbum')
+		WHERE s.id=".$share_id
+	);
+	while ($row = pwg_db_fetch_assoc($res)) {
+		// Only remove user if not unlinked from sharealbum groups
+		if ($row['group_id'] > 0) {
+			// Remove user permission on category
+			pwg_query("
+				DELETE FROM `".USER_ACCESS_TABLE."`
+				WHERE `user_id`=".$row['user_id']
+			);
+			// Remove user infos from user_infos tables
+			pwg_query("
+				DELETE FROM `".USER_INFOS_TABLE."`
+				WHERE `user_id`=".$row['user_id']."
+				LIMIT 1"
+			);
+			// Remove group membership
+			pwg_query("
+				DELETE FROM `".USER_GROUP_TABLE."`
+				WHERE `user_id`=".$row['user_id']
+			);
+			// Delete user
+			pwg_query("
+				DELETE FROM `".USERS_TABLE."`
+				WHERE `id`=".$row['user_id']."
+				LIMIT 1"
+			);
+		
+			// Delete any user existing user session for this specific share
+			delete_user_sessions($row['user_id']);
+		}
+
+		// Remove any existing log from sharealbum_log table
+		// Would have been better to delete it for the user only, but there is no user field
+		pwg_query("
+			DELETE FROM `".SHAREALBUM_TABLE_LOG."`
+			WHERE `cat_id`=".$row['cat']
+		);
+	};
+	// Remove code from sharealbum table
 	pwg_query("
-		DELETE FROM `".SHAREALBUM_TABLE_LOG."`
-		WHERE `cat_id`=".$cat_id
+		DELETE FROM `".SHAREALBUM_TABLE."`
+		WHERE `id`=".$share_id."
+		LIMIT 1"
 	);
 }
 
@@ -201,16 +297,33 @@ function sharealbum_cancel_share($cat_id) {
  * Renew the share code for an album
  * @cat_id id of the album on which a share is applied
  */
-function sharealbum_renew_share($cat_id) {
+function sharealbum_renew_sharebycat($cat_id) {
 	// Renewal of a link
 	$new_code = "";
 	do {
 		$new_code = sharealbum_generate_code(SHAREALBUM_KEY_LENGTH,true,false);
-	} while ($new_code == sharealbum_get_share_code($cat_id));
+	} while ($new_code == sharealbum_get_share_codebycat($cat_id));
 	if (!pwg_query("
 	  UPDATE `".SHAREALBUM_TABLE."`
 	  SET `code` = '".$new_code."',`creation_date`='".date("Y-m-d H:i:s")."'  
 	  WHERE `cat` = ".$cat_id
+	)) die('Could not update code');
+}
+
+/**
+ * Renew the share code for an album
+ * @share_id id of the album on which a share is applied
+ */
+function sharealbum_renew_sharebyid($share_id) {
+	// Renewal of a link
+	$new_code = "";
+	do {
+		$new_code = sharealbum_generate_code(SHAREALBUM_KEY_LENGTH,true,false);
+	} while ($new_code == sharealbum_get_share_codebyid($share_id));
+	if (!pwg_query("
+	  UPDATE `".SHAREALBUM_TABLE."`
+	  SET `code` = '".$new_code."',`creation_date`='".date("Y-m-d H:i:s")."'  
+	  WHERE `id` = ".$share_id
 	)) die('Could not update code');
 }
 
@@ -225,7 +338,7 @@ function sharealbum_create($cat_id) {
 	$new_code = "";
 	do {
 		$new_code = sharealbum_generate_code(SHAREALBUM_KEY_LENGTH,false,false);
-	} while ($new_code == sharealbum_get_share_code($cat_id));
+	} while ($new_code == sharealbum_get_share_codebycat($cat_id));
 	
 	// Determine user name
 	$sharealbum_new_user = "";

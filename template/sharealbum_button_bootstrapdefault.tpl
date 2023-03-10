@@ -27,8 +27,11 @@
 	        alert('{$T_SHAREALBUM_LINK_COPIED_FAILURE}');
 	    });
 	    </script>
+		{if ($SHAREALBUM_HAS_MULTIPLE_LINKS == 0)}
 		<li><a href="{$SHAREALBUM_LINK_RENEW}" onclick="return(confirm('{$T_SHAREALBUM_RENEW_WARNING}'));">{$T_SHAREALBUM_RENEW}</a></li>
+		{/if}
 		<li><a href="{$SHAREALBUM_LINK_CANCEL}" onclick="return(confirm('{$T_SHAREALBUM_CANCEL_WARNING}'));">{$T_SHAREALBUM_CANCEL}</a></li>
+		<li><a href="{$SHAREALBUM_LINK_CREATE}" onclick="return(confirm('{$T_SHAREALBUM_SHARE_AGAIN_WARNING}'));">{$T_SHAREALBUM_SHARE}</a></li>
 	{else}
 		<li><a href="{$SHAREALBUM_LINK_CREATE}">{$T_SHAREALBUM_SHARE}</a></li>
 	{/if}

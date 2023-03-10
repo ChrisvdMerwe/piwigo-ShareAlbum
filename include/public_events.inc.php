@@ -36,6 +36,7 @@ function sharealbum_add_button()
 			'T_SHAREALBUM_CANCEL' => sharealbum_escape_apostrophe(l10n('Cancel sharing')),
 			'T_SHAREALBUM_CANCEL_WARNING' => sharealbum_escape_apostrophe(l10n('Are you sure you wish to cancel this album sharing ?')),
 			'T_SHAREALBUM_SHARE' => sharealbum_escape_apostrophe(l10n('Share this album')),
+			'T_SHAREALBUM_SHARE_AGAIN_WARNING' => sharealbum_escape_apostrophe(l10n('Are you sure you wish to create another share for this album ?')),
 			'T_SHAREALBUM_LINK_CREATED' => sharealbum_escape_apostrophe(l10n('Share link was successfully created. Click the share button to display it.')),
 			'T_SHAREALBUM_LINK_RENEWED' => sharealbum_escape_apostrophe(l10n('Link was successfully renewed. Click the share button to display it.')),
 			'T_SHAREALBUM_LINK_CANCELLED' => sharealbum_escape_apostrophe(l10n('Link was successfully deleted. Album is no longer publicly shared.'))
@@ -97,6 +98,7 @@ function sharealbum_loc_end_page()
 	if (isset($page['section']) and $page['section'] == 'categories' and isset($page['category']))
 	{	
 		$template->assign('SHAREALBUM_LINK_IS_ACTIVE', 0);
+		$template->assign('SHAREALBUM_HAS_MULTIPLE_LINKS', 0);
 		$template->assign('SHAREALBUM_CAT', $page['category']['id']);
 		
 		// Check message
@@ -122,14 +124,24 @@ function sharealbum_loc_end_page()
 				WHERE
 					`cat` = ".$page['category']['id']
 		);
-		if (pwg_db_num_rows($result)) 
+		
+		$count = pwg_db_num_rows($result);
+
+		if ($count > 0)
 		{
 			// Existing code found for this album
 			$row = pwg_db_fetch_assoc($result);
 			$template->assign('SHAREALBUM_LINK_IS_ACTIVE', 1);
+			if ($count > 1)
+			{
+				$template->assign('SHAREALBUM_HAS_MULTIPLE_LINKS', 1);
+			} else {
+				$template->assign('SHAREALBUM_HAS_MULTIPLE_LINKS', 0);
+			}
 			$template->assign('SHAREALBUM_CODE', get_absolute_root_url()."?".SHAREALBUM_URL_AUTH."=".$row['code']);
 			$template->assign('SHAREALBUM_LINK_CANCEL',get_root_url()."?".SHAREALBUM_URL_ACTION."=".SHAREALBUM_URL_ACTION_CANCEL."&".SHAREALBUM_URL_CATEGORY."=".$page['category']['id']);
 			$template->assign('SHAREALBUM_LINK_RENEW',get_root_url()."?".SHAREALBUM_URL_ACTION."=".SHAREALBUM_URL_ACTION_RENEW."&".SHAREALBUM_URL_CATEGORY."=".$page['category']['id']);
+			$template->assign('SHAREALBUM_LINK_CREATE',get_root_url()."?".SHAREALBUM_URL_ACTION."=".SHAREALBUM_URL_ACTION_CREATE."&".SHAREALBUM_URL_CATEGORY."=".$page['category']['id']);
 				
 		} else {
 			// No sharing detected

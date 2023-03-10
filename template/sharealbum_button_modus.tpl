@@ -22,10 +22,14 @@ window.SwitchBox=window.SwitchBox||[]).push("#sharealbumSwitchLink", "#sharealbu
 	        alert('{$T_SHAREALBUM_LINK_COPIED_FAILURE}');
 	    });
 	    </script>
+		{if ($SHAREALBUM_HAS_MULTIPLE_LINKS == 0)}
 		<span style="visibility:hidden">&#x2714; </span>
 		<a href="{$SHAREALBUM_LINK_RENEW}" onclick="return(confirm('{$T_SHAREALBUM_RENEW_WARNING}'));">{$T_SHAREALBUM_RENEW}</a><br/>
+		{/if}
 		<span style="visibility:hidden">&#x2714; </span>
-		<a href="{$SHAREALBUM_LINK_CANCEL}" onclick="return(confirm('{$T_SHAREALBUM_CANCEL_WARNING}'));">{$T_SHAREALBUM_CANCEL}</a>
+		<a href="{$SHAREALBUM_LINK_CANCEL}" onclick="return(confirm('{$T_SHAREALBUM_CANCEL_WARNING}'));">{$T_SHAREALBUM_CANCEL}</a><br/>
+		<span style="visibility:hidden">&#x2714; </span>
+		<a href="{$SHAREALBUM_LINK_CREATE}" onclick="return(confirm('{$T_SHAREALBUM_SHARE_AGAIN_WARNING}'));">{$T_SHAREALBUM_SHARE}</a><br/>
 		{else}
 		<a href="{$SHAREALBUM_LINK_CREATE}" rel="nofollow">{$T_SHAREALBUM_SHARE}</a>
 		{/if}

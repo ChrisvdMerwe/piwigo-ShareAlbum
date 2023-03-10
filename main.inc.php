@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: ShareAlbum
-Version: 12.2
+Version: 13.2
 Description: Plugin enabling a simple share feature for albums
 Plugin URI: http://piwigo.org/ext/extension_view.php?eid=865
 Author: petitssuisses
@@ -130,8 +130,10 @@ function sharealbum_init()
   		redirect(PHPWG_ROOT_PATH.'index.php?'.SHAREALBUM_URL_AUTH.'='.$_GET[SHAREALBUM_URL_AUTH]);
   	} else {
 	  	$result = pwg_query("
-					SELECT `cat`,`user_id`
-					FROM `".SHAREALBUM_TABLE."`
+					SELECT s.cat, s.user_id, u.username
+					FROM ".SHAREALBUM_TABLE." s
+					JOIN ".USERS_TABLE." u
+					ON u.id = s.user_id
 					WHERE
 						`code` = '".$_GET[SHAREALBUM_URL_AUTH]."'"
 	  	);
@@ -148,7 +150,13 @@ function sharealbum_init()
   					VALUES (".$row['cat'].", '".$_SERVER['REMOTE_ADDR']."', '".date("Y-m-d H:i:s")."')");
 			pwg_set_session_var(SHAREALBUM_SESSION_VAR, true);
 			pwg_set_session_var(SHAREALBUM_SESSION_CAT, $row['cat']);
-			redirect(PHPWG_ROOT_PATH.'index.php?/category/'.$row['cat']);
+
+	  		if (strpos($row['username'], "share_") !== false)
+	  		{
+	  			redirect(PHPWG_ROOT_PATH.'index.php?/category/'.$row['cat']);
+	  		} else {
+	  			redirect(PHPWG_ROOT_PATH);
+	  		}
 	  	}
   	}
   }
@@ -175,13 +183,13 @@ function sharealbum_init()
   			case SHAREALBUM_URL_ACTION_CANCEL:
   			    if (!sharealbum_is_poweruser($user['id']))
   			        die('Hacking attempt!');
-  				sharealbum_cancel_share($sharealbum_cat);
+  				sharealbum_cancel_sharebycat($sharealbum_cat);
   				redirect(PHPWG_ROOT_PATH.'index.php?/category/'.$sharealbum_cat.'&'.SHAREALBUM_URL_MESSAGE.'='.SHAREALBUM_URL_MESSAGE_CANCELLED);
   				break;
   			case SHAREALBUM_URL_ACTION_RENEW:
   			    if (!sharealbum_is_poweruser($user['id']))
   			        die('Hacking attempt!');
-  				sharealbum_renew_share($sharealbum_cat);
+  				sharealbum_renew_sharebycat($sharealbum_cat);
   				redirect(PHPWG_ROOT_PATH.'index.php?/category/'.$sharealbum_cat.'&'.SHAREALBUM_URL_MESSAGE.'='.SHAREALBUM_URL_MESSAGE_RENEWED);
   				break;
   		}
